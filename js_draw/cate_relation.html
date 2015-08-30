@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+</head>
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="height:800px;width:800px;margin:0 auto"></div>
+    <!-- ECharts单文件引入 -->
+    <script src="js/dist/echarts.js"></script>
+    <script type="text/javascript" src='js/jquery.js'></script>
+    <script type="text/javascript">
+    var nodes = new Array();
+    var links = new Array();
+    //获取数据
+    $(function(){
+    	$.ajaxSetup({
+			async: false
+		});
+		$.get('http://localhost/app_analyze/index.php?get=count',{},function(data){
+    		data = eval(data)
+    		for (var i in data) {
+    			var imbus = parseFloat(data[i].imbus); 
+    			var category = 0;
+    			
+    			if(imbus > 0){          //节点男性多
+    				if(imbus <= 0.01){
+    					category = 1;
+    				}else if(0.01 < imbus && imbus <= 0.03){
+    					category = 2
+    				}else if(0.03 < imbus && imbus <= 0.05){
+    					category = 3
+    				}else if(0.05 < imbus){
+    					category = 4
+    				}
+    			}else if(imbus < 0){                 //节点女性多
+    				if(imbus >= -0.02){
+    					category = 5;
+    				}else if(-0.02 > imbus && imbus >= -0.05){
+    					category = 6
+    				}else if(-0.05 > imbus && imbus >= -0.08){
+    					category = 7
+    				}else if(-0.08 > imbus){
+    					category = 8
+    				}
+    			}else if(imbus == 0){
+    				category = 0
+    			}
+    			nodes.push({category:category, name:data[i].cate_name,value : data[i].cnt})
+    		};
+    	})
+    	$.get('http://localhost/app_analyze/index.php?get=relation',{},function(data){
+    		data = eval(data)
+    		for (var i in data) {
+    			for(var j in data){
+    				if(data[i].cate1 == data[j].cate2 && data[i].cate2 == data[j].cate1){
+    					links.push({source : data[i].cate1, target : data[i].cate2, weight : parseFloat(data[i].relation)+parseFloat(data[j].relation)})
+    					break;
+    				}
+    			}
+    			if(j > data.length-1){
+    				links.push({source : data[i].cate1, target : data[i].cate2, weight : data[i].relation})
+    			}
+    		};
+    		var temp = links;
+    		links = new Array();
+    		for (var i=0;i<temp.length-1;i++){
+    			for (var j=i+1;j<temp.length;j++){
+    				if (temp[i].weight == temp[j].weight){
+    					links.push({source : temp[i].source, target : temp[i].target, weight : temp[i].weight});
+    					break;
+    				}
+    			}
+    		}
+    	})
+    })
+
+
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'js/dist'
+            }
+        });
+        
+        // 使用
+        require(
+            [
+                'echarts',
+                'echarts/chart/force'
+            ],
+            function (ec) {
+                // 基于准备好的dom，初始化echarts图表
+                var myChart = ec.init(document.getElementById('main')); 
+                
+                var option = {
+					    title : {
+					        text: '某用户的所有应用-类别关系',
+					        subtext: '数据来自人立方',
+					        x:'right',
+					        y:'bottom'
+					    },
+					    tooltip : {
+					        trigger: 'item',
+					        formatter: '{a} : {b}'
+					    },
+					    toolbox: {
+					        show : true,
+					        feature : {
+					            restore : {show: true},
+					            magicType: {show: true, type: ['force', 'chord']},
+					            saveAsImage : {show: true}
+					        }
+					    },
+					    legend: {
+					        x: 'left',
+					        data:['相等','男1','男2','男3','男4','女1','女2','女3','女4']
+					    },
+					    series : [
+					        {
+					            type:'force',
+					            name : "类别关系",
+					            ribbonType: false,
+					            categories : [
+					            	{
+					                    name: '相等',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#1EFF00'
+					                    	}
+					                    }
+					                },
+					                {
+					                    name: '男1',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#63B7EE'
+					                    	}
+					                    }
+					                },
+					                {
+					                    name: '男2',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#6381EE'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '男3',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#6363EE'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '男4',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#0018B2'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '女1',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#FADDDD'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '女2',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#F57777'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '女3',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#F34040'
+					                    	}
+					                    }
+					                },
+					                {
+					                	name: '女4',
+					                    itemStyle:{
+					                    	normal:{
+					                    		color:'#C80202'
+					                    	}
+					                    }
+					                }
+					            ],
+					            itemStyle: {
+					                normal: {
+					                    label: {
+					                        show: true,
+					                        textStyle: {
+					                            color: '#333'
+					                        }
+					                    },
+					                    nodeStyle : {
+					                        brushType : 'both',
+					                        borderColor : 'rgba(255,215,0,0.4)',
+					                        borderWidth : 1
+					                    }
+					                },
+					                emphasis: {
+					                    label: {
+					                        show: false
+					                        // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
+					                    },
+					                    nodeStyle : {
+					                        //r: 30
+					                    },
+					                    linkStyle : {}
+					                }
+					            },
+					            minRadius : 15,
+					            maxRadius : 25,
+					            gravity: 1.1,
+					            scaling: 1.2,
+					            draggable: true,
+					            linkSymbol: 'none',
+					            steps: 10,
+					            coolDown: 0.9,
+					            //preventOverlap: true,
+					            nodes:nodes,
+					            links : links
+					        }
+					    ]
+					};
+        
+                // 为echarts对象加载数据 
+                myChart.setOption(option); 
+            }
+        );
+        var ecConfig = require('echarts/config');
+		function focus(param) {
+		    var data = param.data;
+		    var links = option.series[0].links;
+		    var nodes = option.series[0].nodes;
+		    if (
+		        data.source != null
+		        && data.target != null
+		    ) { //点击的是边
+		        var sourceNode = nodes.filter(function (n) {return n.name == data.source})[0];
+		        var targetNode = nodes.filter(function (n) {return n.name == data.target})[0];
+		        console.log("选中了边 " + sourceNode.name + ' -> ' + targetNode.name + ' (' + data.weight + ')');
+		    } else { // 点击的是点
+		        console.log("选中了" + data.name + '(' + data.value + ')');
+		    }
+		}
+		myChart.on(ecConfig.EVENT.CLICK, focus)
+
+		myChart.on(ecConfig.EVENT.FORCE_LAYOUT_END, function () {
+		    console.log(myChart.chart.force.getPosition());
+		});
+    </script>
+</body>
