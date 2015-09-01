@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import csv
+import csv,math
 class Bayes:
 	def __init__(self):
 		self.male = {}
@@ -21,50 +21,56 @@ class Bayes:
 				c = float(a)/(float(a)+float(b))
 				self.model[tag] = c
 
-	def predict(self,tags,p):
+	def predict(self,tags,threshold):
 		predic = 0
-		a = 1
-		b = 1
-		
+		a = 0
+		b = 0
+
 		for tag in tags :
 			if self.model.has_key(tag):
-				a *= float(self.model[tag])
-				b *= float(1 - self.model[tag])
-		if a+b == 0:
-			predic = 0
-		else:
-			predic = a/(a + b)
+				a += math.log(float(self.model[tag]),math.e)
+				b += math.log(float(1-self.model[tag]),math.e)
 		
-		if predic > p:
+		try:
+			predic = math.exp(a) / (math.exp(a) + math.exp(b))
+		except:
+			predic = 0
+
+		if predic > threshold:
 			return 1
 		else:
 			return 0
 
-	def test(self,test_data,sex):
+	def test(self,test_data):
+		tag_data = test_data[0]
+		sex_data = test_data[1]
 		right = 0
-		for uid in test_data:
-			tags = test_data[uid]
-			if sex == self.predict(tags,0.15):
+		for uid in tag_data:
+			tags = tag_data[uid]
+			sex = sex_data[uid]
+			if int(sex) == self.predict(tags,0.5):
 				right += 1
 			else:
-				print '判断错误用户：' + uid
+				print sex,uid
 		print "判断正确的用户数："+str(right)
-		print "正确率为:" + str(float(right) / float(len(test_data)))
+		print "正确率为:" + str(float(right) / float(len(tag_data)))
 
 	def run(self):
 		test_data = self.get_test_data()
-		self.test(test_data,1)
+		self.test(test_data)
 
 	def get_test_data(self):
-		test_data = {}
-		filename = '50male.csv'
+		tag_data = {}
+		sex_data = {}
+		filename = '100ren.csv'
 		dataset = self.loadCsv(filename)
 		for data in dataset:
-			if test_data.has_key(data[0]):
-				test_data[data[0]] += (data[1],)
+			if tag_data.has_key(data[1]):
+				tag_data[data[1]] += (data[2],)
 			else:
-				test_data[data[0]] = (data[1],)
-		return test_data
+				tag_data[data[1]] = (data[2],)
+				sex_data[data[1]] = data[0]
+		return tag_data,sex_data
 
 	def loadCsv(self,filename):
 		lines = csv.reader(open(filename, "rb"))
