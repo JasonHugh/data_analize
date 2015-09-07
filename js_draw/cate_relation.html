@@ -17,7 +17,7 @@
     	$.ajaxSetup({
 			async: false
 		});
-		$.get('http://localhost/app_analyze/index.php?get=count',{},function(data){
+		$.get('index.php?get=count',{},function(data){
     		data = eval(data)
     		for (var i in data) {
     			var imbus = parseFloat(data[i].imbus); 
@@ -49,7 +49,7 @@
     			nodes.push({category:category, name:data[i].cate_name,value : data[i].cnt})
     		};
     	})
-    	$.get('http://localhost/app_analyze/index.php?get=relation',{},function(data){
+    	$.get('index.php?get=relation',{},function(data){
     		data = eval(data)
     		for (var i in data) {
     			for(var j in data){
