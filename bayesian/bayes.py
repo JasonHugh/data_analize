@@ -7,14 +7,11 @@ class Bayes:
 		self.male = {}
 		self.famale = {}
 		self.model = {}
-		filename = 'male_cate.csv'
+		filename = 'cate_value1.csv'
 		dataset = self.loadCsv(filename)
 		for data in dataset:
 			self.male[data[0]] = data[1]
-		filename = 'famale_cate.csv'
-		dataset = self.loadCsv(filename)
-		for data in dataset:
-			self.famale[data[0]] = data[1]
+			self.famale[data[0]] = data[2]
 
 		for tag in self.male.keys():
 			if self.famale.has_key(tag):
@@ -93,8 +90,8 @@ class Bayes:
 		print fpr,tpr,threshold
 		#print "TPR:"+str(float(tp) / float(tp+fn))
 		#print "FPR:"+str(float(fp) / float(fp+tn))
-		print "判断正确的用户数："+str(tp+tn)
-		print "正确率为:" + str(float(tp+tn) / float(tp+tn+fp+fn))
+		#print "判断正确的用户数："+str(tp+tn)
+		#print "正确率为:" + str(float(tp+tn) / float(tp+tn+fp+fn))
 
 	def get_test_data(self):
 		tag_data = {}
@@ -114,22 +111,28 @@ class Bayes:
 		dataset = list(lines)
 		return dataset
 
-bayes = Bayes()
-bayes.test(0.5)
 '''
+bayes = Bayes()
+#bayes.test(0.5)
 #thresholds = bayes.get_thresholds()
 #for t in thresholds:
 #	bayes.test(t[1])
-#i = 0
-#while i <= 1:
-#	bayes.test(i)
-#	i += 0.1
+i = 0
+while i <= 1:
+	bayes.test(i)
+	i += 0.1
+'''
+plt.plot([0,1],[0,1],'c--')
 lines = csv.reader(open('roc.csv', "rb"))
 dataset = list(lines)
 x = [i[0] for i in dataset]
 y = [i[1] for i in dataset]
 plt.plot(x,y)
-plt.plot([0,1],[0,1],'c--')
+lines = csv.reader(open('roc1.csv', "rb"))
+dataset = list(lines)
+x = [i[0] for i in dataset]
+y = [i[1] for i in dataset]
+plt.plot(x,y,'r')
 plt.xlabel('FPR')
 plt.ylabel('TPR')
 plt.xlim(0, 1)
@@ -137,5 +140,3 @@ plt.ylim(0, 1)
 plt.title('ROC')
 plt.legend()
 plt.show()
-
-'''
