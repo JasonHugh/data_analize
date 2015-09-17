@@ -68,6 +68,8 @@ class Bayes:
 			tags = tag_data[uid]
 			sex = int(sex_data[uid])
 			score = self.get_score(tags)
+			if score == 0:
+				continue
 			predict = self.predict(score,threshold)
 			if sex == 1:
 				if predict == 1:
@@ -88,13 +90,31 @@ class Bayes:
 			fpr = 0
 		else:
 			fpr = float(fp) / float(fp+tn)
-		print fpr,tpr,threshold
-		#print "TPR:"+str(float(tp) / float(tp+fn))
-		#print "FPR:"+str(float(fp) / float(fp+tn))
-		print '男性正确率:'+str(float(tp)/float(tp+fp))
-		print '女性正确率:'+str(float(tn)/float(tn+fn))
-		print "判断正确的用户数："+str(tp+tn)
+		print fpr,tpr,threshold,tp,fp,tn,fn
+		#print '男性正确率:'+str(float(tp)/float(tp+fn))
+		#print '女性正确率:'+str(float(tn)/float(tn+fp))
+		#print "判断正确的用户数："+str(tp+tn)
 		print "正确率为:" + str(float(tp+tn) / float(tp+tn+fp+fn))
+		return fpr,tpr
+	
+	def get_roc(self,thresholds,color):
+		x = []
+		y = []
+		for i in thresholds:
+			fpr,tpr = bayes.test(i)
+			x.append(fpr)
+			y.append(tpr)
+		plt.plot(x,y,color)
+
+	def get_image(self):
+		plt.plot([0,1],[0,1],'c--')
+		plt.xlabel('FPR')
+		plt.ylabel('TPR')
+		plt.xlim(0, 1)
+		plt.ylim(0, 1)
+		plt.title('ROC')
+		plt.legend()
+		plt.show()
 
 	def get_test_data(self):
 		tag_data = {}
@@ -113,43 +133,15 @@ class Bayes:
 		lines = csv.reader(open(filename, "rb"))
 		dataset = list(lines)
 		return dataset
-#'''
-bayes = Bayes('cate_value.csv','D:/HAY/Desktop/test_data.csv')
-bayes.test(0.5)
+
+thresholds = []
+i = 0
+while i <= 1:
+	thresholds.append(i)
+	i += 0.05
+#bayes = Bayes('cate_value.csv','D:/HAY/Desktop/test_data.csv')
+#bayes.get_roc(thresholds,'r')
+bayes = Bayes('cate_value1.csv','D:/HAY/Desktop/test_data.csv')
 #thresholds = bayes.get_thresholds()
-#for t in thresholds:
-#	bayes.test(t[1])
-#i = 0
-#while i <= 1:
-#	bayes.test(i)
-#	i += 0.1
-'''
-plt.plot([0,1],[0,1],'c--')
-#1
-lines = csv.reader(open('roc.csv', "rb"))
-dataset = list(lines)
-x = [i[0] for i in dataset]
-y = [i[1] for i in dataset]
-#plt.plot(x,y)
-#2
-lines = csv.reader(open('roc1.csv', "rb"))
-dataset = list(lines)
-x = [i[0] for i in dataset]
-y = [i[1] for i in dataset]
-plt.plot(x,y,'r')
-#3
-lines = csv.reader(open('roc2.csv', "rb"))
-dataset = list(lines)
-x = [i[0] for i in dataset]
-y = [i[1] for i in dataset]
-plt.plot(x,y,'g')
-
-plt.xlabel('FPR')
-plt.ylabel('TPR')
-plt.xlim(0, 1)
-plt.ylim(0, 1)
-plt.title('ROC')
-
-plt.legend()
-plt.show()
-'''
+bayes.get_roc(thresholds,'b')
+bayes.get_image()

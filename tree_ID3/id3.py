@@ -1,29 +1,35 @@
 # -*- coding:utf-8 -*-
 import csv,math
+import numpy as np
+import scipy as sp
+from sklearn import tree
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import classification_report
+from sklearn.cross_validation import train_test_split
 
 class ID3:
-	def __init__(self):
-		self.train_data = self.get_train_data()
+	#def __init__(self):
+		#self.train_data,self.tags = self.format_train_data()
 		#print train_data[0]['12520267']
 
 	def train(self,train_data):
 		tag_data = train_data[0]
 		sex_data = train_data[1]
 		tags = train_data[2]
-	    classList = [sex_data[uid] for uid in sex_data]
-	    if classList.count(classList[0]) == len(classList):
-	        return classList[0]
-	    if len(tag_data[0]) == 1:
-	        return majorityCnt(classList)   
-	    bestFeat = find_best_tag(train_data)
-	    bestFeatLabel = tags[bestFeat][0]
-	    myTree = {bestFeatLabel:{}}
-	    del(tags[bestFeat])
-	    featValues = [tag_data[uid][bestFeat] for uid in tag_data]
-	    uniqueVals = set(featValues)
-	    for value in uniqueVals:
-	        myTree[bestFeatLabel][value] = createTree(splitDataSet(dataSet, bestFeat, value), tags)
-	    return myTree
+		classList = [sex_data[uid] for uid in sex_data]
+		if classList.count(classList[0]) == len(classList):
+		    return classList[0]
+		if len(tag_data[0]) == 1:
+		    return majorityCnt(classList)   
+		bestFeat = find_best_tag(train_data)
+		bestFeatLabel = tags[bestFeat][0]
+		myTree = {bestFeatLabel:{}}
+		del(tags[bestFeat])
+		featValues = [tag_data[uid][bestFeat] for uid in tag_data]
+		uniqueVals = set(featValues)
+		for value in uniqueVals:
+		    myTree[bestFeatLabel][value] = createTree(splitDataSet(dataSet, bestFeat, value), tags)
+		return myTree
 
 	def majorityCnt(classList):
 	    classCount = {}
@@ -74,38 +80,93 @@ class ID3:
 			e = 0
 		return e
 
-	def get_train_data(self):
+	def format_data(self,filename):
 		#获取训练数据，以一定格式返回
-		tags = self.load_csv('cate_value.csv')
-		dateset = self.load_csv('../bayesian/test_data.csv')
-		tag_data = {}
+		dataSet = self.load_csv(filename)
+		train_data = {}
 		sex_data = {}
-		for data in dateset:
-			if tag_data.has_key(data[1]):
-				tag_data[data[1]] += (data[2],)
+		tags = self.get_tags()
+		for data in dataSet:
+			if train_data.has_key(data[1]):
+				train_data[data[1]] += (data[2],)
 			else:
-				tag_data[data[1]] = (data[2],)
+				train_data[data[1]] = (data[2],)
 				sex_data[data[1]] = data[0]
-		new_tag_data = {}
-		for uid in tag_data:
+		new_train_data = {}
+		for uid in train_data:
 			for tag in tags:
 				try:
-					list(tag_data[uid]).index(tag[0])
-					if new_tag_data.has_key(uid):
-						new_tag_data[uid] += (1,)
+					list(train_data[uid]).index(tag)
+					if new_train_data.has_key(uid):
+						new_train_data[uid] += (1,)
 					else:
-						new_tag_data[uid] = (1,)
+						new_train_data[uid] = (1,)
 				except:
-					if new_tag_data.has_key(uid):
-						new_tag_data[uid] += (0,)
+					if new_train_data.has_key(uid):
+						new_train_data[uid] += (0,)
 					else:
-						new_tag_data[uid] = (0,)
-		return new_tag_data,sex_data,tags
+						new_train_data[uid] = (0,)
+			new_train_data[uid] += (sex_data[uid],)
+		return new_train_data
+
+	def data_to_csv(self,filename,data):
+		writer = csv.writer(open(filename,'wb'))
+		for uid in tag_data:
+			writer.writerow(tag_data[uid])
+
+	def get_tags(self):
+		dataSet = self.load_csv('all_tag.csv')
+		tags = [data[0] for data in dataSet]
+		return tags
 
 	def load_csv(self,filename):
 		lines = csv.reader(open(filename, "rb"))
 		dataset = list(lines)
 		return dataset
 
+	def get_data_from_csv(self,filename):
+		data  = []
+		labels = []
+		dataSet = self.load_csv(filename)
+		for d in dataSet:
+			data.append(d[:-1])
+			labels.append(float(d[-1]))
+		return np.array(data),np.array(labels)
+
+	def sklearn_test(self):
+		''' 训练数据读入 '''
+		x,y = self.get_data_from_csv('test_data.csv')
+		''' 拆分训练数据与测试数据 '''
+		x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.1)
+		''' 使用信息熵作为划分标准，对决策树进行训练 '''
+		clf = tree.DecisionTreeClassifier(criterion='entropy')
+		clf.fit(x_train, y_train)
+
+		#''' 把决策树结构写入文件 '''
+		#with open("tree.dot", 'w') as f:
+		#  f = tree.export_graphviz(clf, out_file=f)
+		 
+		#''' 系数反映每个特征的影响力。越大表示该特征在分类中起到的作用越大 '''
+		#print(clf.feature_importances_)
+		#
+		'''测试结果的打印'''
+		#answer = clf.predict(x_train)
+		#print(x_train)
+		#print(answer)
+		#print(y_train)
+		#print(np.mean( answer == y_train))
+		#
+		'''准确率与召回率'''
+		#precision, recall, thresholds = precision_recall_curve(y_train, clf.predict(x_train))
+		answer = clf.predict_proba(x_test)[:,1]
+		a = 0
+		for i in range(len(answer)):
+			if answer[i] == y_test[i]:
+				a += 1
+		print len(answer),a
+		print(classification_report(y_test, answer, target_names = ['famale', 'male']))
+
+
+
 id3 = ID3()
-id3.find_best_split()
+id3.sklearn_test()
