@@ -2,9 +2,11 @@
 import csv,math
 import numpy as np
 import scipy as sp
+import matplotlib.pyplot as plt 
 from sklearn import tree
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import classification_report
+from sklearn.metrics import roc_curve, auc
 from sklearn.cross_validation import train_test_split
 
 class ID3:
@@ -158,15 +160,27 @@ class ID3:
 		#
 		'''准确率与召回率'''
 		#precision, recall, thresholds = precision_recall_curve(y_train, clf.predict(x_train))
+		
 		answer = clf.predict_proba(x_test)[:,1]
-		a = 0
-		for i in range(len(answer)):
-			if answer[i] == y_test[i]:
-				a += 1
-		print len(answer),a
-		print(classification_report(y_test, answer, target_names = ['famale', 'male']))
+		fpr, tpr, thresholds = roc_curve(y_test, answer)
+
+		roc_auc = auc(fpr, tpr)
+		plt.plot(fpr, tpr)
+
+		#print(classification_report(y_test, answer, target_names = ['famale', 'male']))
+
+	def get_image(self):
+		plt.plot([0,1],[0,1],'c--')
+		plt.xlabel('FPR')
+		plt.ylabel('TPR')
+		plt.xlim(0, 1)
+		plt.ylim(0, 1)
+		plt.title('ROC')
+		plt.legend()
+		plt.show()
 
 
 
 id3 = ID3()
 id3.sklearn_test()
+id3.get_image()
