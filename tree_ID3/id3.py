@@ -139,9 +139,9 @@ class ID3:
 		''' 训练数据读入 '''
 		x,y = self.get_data_from_csv('test_data.csv')
 		''' 拆分训练数据与测试数据 '''
-		x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.1)
+		x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2)
 		''' 使用信息熵作为划分标准，对决策树进行训练 '''
-		clf = tree.DecisionTreeClassifier(criterion='entropy')
+		clf = tree.DecisionTreeClassifier(criterion='gini')
 		clf.fit(x_train, y_train)
 
 		#''' 把决策树结构写入文件 '''
@@ -163,11 +163,11 @@ class ID3:
 		
 		answer = clf.predict_proba(x_test)[:,1]
 		fpr, tpr, thresholds = roc_curve(y_test, answer)
-
+		print fpr
 		roc_auc = auc(fpr, tpr)
 		plt.plot(fpr, tpr)
 
-		#print(classification_report(y_test, answer, target_names = ['famale', 'male']))
+		print(classification_report(y_test, answer, target_names = ['famale', 'male']))
 
 	def get_image(self):
 		plt.plot([0,1],[0,1],'c--')
@@ -183,4 +183,4 @@ class ID3:
 
 id3 = ID3()
 id3.sklearn_test()
-id3.get_image()
+#id3.get_image()

@@ -91,10 +91,14 @@ class Bayes:
 		else:
 			fpr = float(fp) / float(fp+tn)
 		print fpr,tpr,threshold,tp,fp,tn,fn
-		#print '男性正确率:'+str(float(tp)/float(tp+fn))
-		#print '女性正确率:'+str(float(tn)/float(tn+fp))
-		#print "判断正确的用户数："+str(tp+tn)
-		print "正确率为:" + str(float(tp+tn) / float(tp+tn+fp+fn))
+
+		#precision = float(tp)/float(tp+fp)
+		#recall = float(tp)/float(tp+fn)
+		#fscore = (2*precision*recall)/(precision+recall)
+		#print 'Precision:'+str(precision)
+		#print 'Recall:'+str(recall)
+		#print " F-score:"+str(fscore)
+		print "Accuracy:" + str(float(tp+tn) / float(tp+tn+fp+fn))
 		return fpr,tpr
 	
 	def get_roc(self,thresholds,color,label=''):
@@ -175,7 +179,7 @@ while i <= 1:
 	thresholds.append(i)
 	i += 0.05
 bayes = Bayes('train_data.csv','D:/HAY/Desktop/test_data.csv')
-#bayes6 = Bayes('train_data.csv','D:/HAY/Desktop/test_data_all.csv')
+bayes6 = Bayes('train_data2.csv','D:/HAY/Desktop/test_data.csv')
 #bayes1 = Bayes('train_data.csv','D:/HAY/Desktop/test_data_400_1.csv')
 #bayes2 = Bayes('train_data.csv','D:/HAY/Desktop/test_data_400_2.csv')
 #bayes3 = Bayes('train_data.csv','D:/HAY/Desktop/test_data_400_3.csv')
@@ -183,8 +187,8 @@ bayes = Bayes('train_data.csv','D:/HAY/Desktop/test_data.csv')
 #bayes5 = Bayes('train_data.csv','D:/HAY/Desktop/test_data_400_5.csv')
 #bayes.test(0.5)
 ##bayes1.test(0.5)
-bayes.get_roc(thresholds,'r',u'测试数据2000')
-#bayes6.get_roc(thresholds,'r--',u'测试数据所有用户')
+bayes.get_roc(thresholds,'r',u'all tag')
+bayes6.get_roc(thresholds,'r--',u'some tag')
 #bayes1.get_roc(thresholds,'g',u'测试数据第1批400')
 #bayes2.get_roc(thresholds,'b',u'测试数据第2批400')
 #bayes3.get_roc(thresholds,'c',u'测试数据第3批400')
